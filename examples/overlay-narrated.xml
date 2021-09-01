@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+	<!-- explicitly declare video size -->
+	<config name="shape" value="900x540"/>
+
+	<!-- import videos -->
+	<material name="swim" path="videos/swim.mp4" />
+	<material name="fishing" path="videos/fishing.mp4" />
+	<material name="grill" path="videos/grill.mp4" />
+
+	<!-- define video scene -->
+	<stream>
+		<pipe>
+			<!-- lay background color -->
+			<composite name="color" duration="12"/>
+			<composite name="overlay" x="w/5" y="h/3" scale="0.7" effect="dissolve">
+				<reference name="swim"/> <!-- overlay fish video at the start -->
+			</composite>
+			<composite name="overlay" x="1.5*w" y="h" at="3.5" scale="0.7" effect="dissolve">
+				<reference name="fishing"/> <!-- overlay fishing video at 3.5 seconds -->
+			</composite>
+			<composite name="overlay" x="w/5" y="1.7*h" at="7" scale="0.7" effect="dissolve">
+				<reference name="grill"/> <!-- overlay grill video at 7 seconds -->
+			</composite>
+			<composite name="drawtext" shift_x="w/4" shift_y="0.45*h" text="Narrated by https\://ondoku3.com" color="white" scale="0.45"/>
+		</pipe>
+	</stream>
+
+	<!-- insert narration -->
+	<audiotrack>
+		<insert at="0">
+			<audio path="audios/swim.mp3"/>
+		</insert>
+		<insert at="3.5">
+			<audio path="audios/fishing.mp3"/>
+		</insert>
+		<insert at="7">
+			<audio path="audios/grilled.mp3"/>
+			<audio path="audios/poor.mp3"/>
+		</insert>
+	</audiotrack>
+
+</root>

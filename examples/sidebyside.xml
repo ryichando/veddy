@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+	<!-- import materials -->
+	<material name="mesh" path="videos/water_mesh/image_%d.jpg" fps="30"/>
+	<material name="transparent" path="videos/water_transparent/image_%d.jpg" fps="30"/>
+
+	<!-- define video scene -->
+	<stream>
+		<composite name="sidebyside-split">
+			<reference name="mesh"/>
+			<reference name="transparent"/>
+		</composite>
+	</stream>
+
+</root>

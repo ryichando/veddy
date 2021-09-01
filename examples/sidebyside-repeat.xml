@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+	<!-- import materials -->
+	<material name="mesh" path="videos/water_mesh/image_%d.jpg" fps="60"/>
+	<material name="transparent" path="videos/water_transparent/image_%d.jpg" fps="60"/>
+
+	<!-- build comparison scene -->
+	<stream name="comparison">
+		<pipe>
+			<composite name="sidebyside-split">
+				<reference name="mesh"/>
+				<reference name="transparent"/>
+			</composite>
+			<set name="bottom" value="0.9"/>
+			<composite name="drawtext" text="Mesh View" scale="0.5" shift_x="-w/4" y="$bottom*h"/>
+			<composite name="drawtext" text="Transparent View" scale="0.5" shift_x="w/4" y="$bottom*h"/>
+		</pipe>
+	</stream>
+
+	<!-- define main stream -->
+	<stream transition="fade">
+		<composite name="title-slide" text="Water Simulation"/>
+		<reference name="comparison"/>
+		<composite name="title-slide" text="Repeat"/>
+		<pipe>
+			<composite name="changespeed" factor="0.25">
+				<reference name="comparison"/>
+			</composite>
+			<composite name="drawtext" text="Repeat (0.5x faster)" scale="0.5" x="0.05*w" y="0.05*h"/>
+		</pipe>
+	</stream>
+	
+</root>

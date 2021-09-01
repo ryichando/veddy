@@ -1,0 +1,466 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+	<!-- Author: Ryoichi Ando (https://ryichando.graphics) -->
+	<!-- License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/) -->
+
+	<function name="color">
+		<default name="color" value="$_bgcolor_"/>
+		<default name="duration" value=""/>
+		<default name="width" value="$_width_"/>
+		<default name="height" value="$_height_"/>
+		<default name="fps" value="$_fps_"/>
+		<default name="alpha" value="1.0"/>
+		<filter name="color" duration="$duration" width="$width" height="$height" fps="$fps">
+			<variable name="color" value="$color@$alpha"/>
+			<variable name="s" value="${width}x${height}"/>
+			<variable name="d" value="$duration"/>
+			<variable name="r" value="$fps"/>
+		</filter>
+	</function>
+
+	<function name="nullsrc">
+		<default name="duration" value=""/>
+		<default name="width" value="$_width_"/>
+		<default name="height" value="$_height_"/>
+		<default name="fps" value="$_fps_"/>
+		<filter name="nullsrc" duration="$duration" width="$width" height="$height" fps="$fps">
+			<variable name="s" value="${width}x${height}"/>
+			<variable name="d" value="$duration"/>
+			<variable name="r" value="$fps"/>
+		</filter>
+	</function>
+
+	<function name="trim">
+		<default name="start" value="0"/>
+		<default name="end" value="3"/>
+		<pipe>
+			<input/>
+			<filter name="trim" duration="eval($end-$start)">
+				<variable name="start" value="$start"/>
+				<variable name="end" value="$end"/>
+			</filter>
+			<filter name="setpts">
+				<variable value="PTS-STARTPTS"/>
+			</filter>
+		</pipe>
+	</function>
+	
+	<function name="vstack">
+		<filter name="vstack" height="eval(sum(input_heights()))">
+			<variable name="inputs" value="eval(count())"/>
+			<variable name="shortest" value="0"/>
+			<all_inputs/>
+		</filter>
+	</function>
+
+	<function name="hstack">
+		<filter name="hstack" width="eval(sum(input_widths()))">
+			<variable name="inputs" value="eval(count())"/>
+			<variable name="shortest" value="0"/>
+			<all_inputs/>
+		</filter>
+	</function>
+
+	<function name="crop">
+		<default name="x" value="0"/>
+		<default name="y" value="0"/>
+		<default name="width" value="0.5*iw"/>
+		<default name="height" value="0.5*ih"/>
+		<filter name="crop" width="$width" height="$height">
+			<interpret name="iw,i_w" value="eval(width())"/>
+			<interpret name="ih,i_h" value="eval(height())"/>
+			<variable name="x" value="$x"/>
+			<variable name="y" value="$y"/>
+			<variable name="w" value="$width"/>
+			<variable name="h" value="$height"/>
+			<input/>
+		</filter>
+	</function>
+
+	<function name="join">
+		<assert_inputs_match name="shape"/>
+		<assert_inputs_match name="fps"/>
+		<filter name="concat" duration="sum">
+			<variable name="n" value="eval(count())"/>
+			<all_inputs/>
+		</filter>
+	</function>
+
+	<function name="split">
+		<default name="count" value="2"/>
+		<filter name="split" output_count="$count">
+			<variable value="$count"/>
+			<input/>
+		</filter>
+	</function>
+
+	<function name="scale">
+		<default name="scale" value="0.5"/>
+		<default name="width" value="$scale*iw"/>
+		<default name="height" value="$scale*ih"/>
+		<filter name="scale" width="$width" height="$height">
+			<interpret name="iw,in_w" value="eval(width())"/>
+			<interpret name="ih,ib_h" value="eval(height())"/>
+			<variable name="width" value="$width"/>
+			<variable name="height" value="$height"/>
+			<input/>
+		</filter>
+	</function>
+
+	<function name="fps">
+		<default name="fps" value="eval(input_fps())"/>
+		<filter name="fps" fps="$fps">
+			<variable name="fps" value="$fps"/>
+			<input/>
+		</filter>
+	</function>
+
+	<function name="format">
+		<default name="format" value="yuva444p"/>
+		<filter name="format">
+			<variable value="$format"/>
+			<input/>
+		</filter>
+	</function>
+
+	<function name="fade">
+		<default name="type" value="in"/>
+		<default name="at" value="0"/>
+		<default name="duration" value="3"/>
+		<default name="alpha" value="1"/>
+		<default name="color" value=""/>
+		<filter name="fade">
+			<assert value="eval($alpha #gte 0)" name="alpha check: alpha:$alpha #gte 0"/>
+			<assert value="eval($at #gte 0)" name="start time check: at:$at #gte 0"/>
+			<assert value="eval(input_duration() #gte $at+$duration)" name="eval(input_duration()) #gte $at+$duration"/>
+			<variable name="type" value="$type"/>
+			<variable name="start_time" value="$at"/>
+			<variable name="duration" value="$duration"/>
+			<variable name="alpha" value="$alpha"/>
+			<variable name="color" value="$color"/>
+			<input/>
+		</filter>
+	</function>
+
+	<function name="extend">
+		<default name="start_duration" value="0"/>
+		<default name="end_duration" value="0"/>
+		<pipe>
+			<composite name="split" count="3">
+				<input/>
+			</composite>
+			<convert_to_inputs/>
+			<composite name="join">
+				<pipe>
+					<input index="0"/>
+					<filter name="setpts">
+						<variable value="if(eq(N,0),PTS-STARTPTS,PTS-STARTPTS+($start_duration/TB))"/>
+					</filter>
+					<composite name="fps"/>
+					<filter name="trim" duration="$start_duration">
+						<variable name="start" value="0"/>
+						<variable name="end" value="$start_duration"/>
+					</filter>
+				</pipe>
+				<input index="1"/>
+				<pipe>
+					<composite name="nullsrc" duration="eval(input_duration()+$end_duration)" width="eval(input_width())" height="eval(input_height())" fps="eval(input_fps())"/>
+					<composite name="overlay" shortest="0">
+						<input index="2"/>
+					</composite>
+					<filter name="trim" duration="$end_duration">
+						<variable name="start" value="eval(input_duration())"/>
+						<variable name="end" value="eval(input_duration()+$end_duration)"/>
+					</filter>
+					<filter name="setpts">
+						<variable value="PTS-STARTPTS"/>
+					</filter>
+				</pipe>
+			</composite>
+			<filter name="settb">
+				<variable value="eval(1/fps())"/>
+			</filter>
+		</pipe>
+	</function>
+
+	<function name="delay">
+		<default name="duration" value="1"/>
+		<if name="equal">
+			<variable value="eval($duration #gt 0)"/>
+			<variable value="True"/>
+			<then>
+				<composite name="join">
+					<composite name="color" alpha="0.0" width="eval(input_width())" height="eval(input_height())" duration="$duration" fps="eval(input_fps())"/>
+					<input/>
+				</composite>
+			</then>
+			<else>
+				<input/>
+			</else>
+		</if>
+	</function>
+
+	<function name="overlay">
+		<assert_inputs_match name="fps"/>
+		<default name="x" value="0"/>
+		<default name="y" value="0"/>
+		<default name="at" value="0"/>
+		<default name="for" value=""/>
+		<default name="scale" value="1.0"/>
+		<default name="shortest" value="0"/>
+		<default name="duration" value="1"/>
+		<default name="effect" value="pop"/>
+		<filter name="overlay" duration="eval(min(durations()) if $shortest else max(durations()))">
+			<variable name="x" value="$x"/>
+			<variable name="y" value="$y"/>
+			<variable name="shortest" value="$shortest"/>
+			<set name="d0" value="eval(input_duration(0))"/>
+			<set name="d1" value="eval(input_duration(1))"/>
+			<filter_input index="1">
+				<if name="switch">
+					<variable value="$effect"/>
+					<case value="dissolve">
+						<composite name="fade" type="in" at="0" duration="$duration">
+							<if name="set">
+								<variable value="for"/>
+								<then>
+									<composite name="fade" type="out" at="eval($for-$duration)" duration="$duration">
+										<input/>
+									</composite>
+								</then>
+								<else>
+									<input/>
+								</else>
+							</if>
+						</composite>
+					</case>
+					<otherwise>
+						<composite name="format">
+							<input/>
+						</composite>
+					</otherwise>
+				</if>
+			</filter_input>
+			<filter_input index="1">
+				<composite name="delay" duration="$at">
+					<if name="set">
+						<variable value="for"/>
+						<then>
+							<assert value="eval($d0-($at+$for) #gt 0)" name="duration test: $d0 - ($at+$for) > 0"/>
+							<composite name="join">
+								<composite name="trim" start="0" end="$for">
+									<input/>
+								</composite>
+								<composite name="color" alpha="0.0" width="eval(input_width())" height="eval(input_height())" fps="eval(input_fps())" duration="eval($d0-($at+$for))"/>
+							</composite>
+						</then>
+						<else>
+							<input/>
+						</else>
+					</if>
+				</composite>
+			</filter_input>
+			<input index="0"/>
+			<if name="equal">
+				<variable value="$scale"/>
+				<variable value="1.0"/>
+				<then>
+					<input index="1"/>
+				</then>
+				<else>
+					<filter name="scale">
+						<variable name="w" value="$scale*iw"/>
+						<variable name="h" value="-1"/>
+						<input index="1"/>
+					</filter>
+				</else>
+			</if>
+		</filter>
+	</function>
+
+	<function name="transition">
+		<assert_inputs_match name="shape"/>
+		<assert_inputs_match name="fps"/>
+		<default name="duration" value="1"/>
+		<default name="type" value="fade"/>
+		<filter name="xfade" duration="eval(sum(durations())-$duration)">
+			<variable name="transition" value="$type"/>
+			<variable name="duration" value="$duration"/>
+			<variable name="offset" value="eval(duration()-$duration)"/>
+			<input index="0"/>
+			<input index="1"/>
+		</filter>
+	</function>
+	
+	<function name="extended_transition">
+		<assert_inputs_match name="shape"/>
+		<assert_inputs_match name="fps"/>
+		<default name="duration" value="1"/>
+		<default name="pause" value="1"/>
+		<default name="color" value=""/>
+		<default name="type" value="fade"/>
+		<if name="set">
+			<variable value="color"/>
+			<then>
+				<composite name="transition" type="$type" duration="$duration">
+					<composite name="extend" end_duration="eval($pause+$duration)">
+						<input index="0"/>
+					</composite>
+					<composite name="transition" type="$type">
+						<composite name="color" color="$color" duration="eval(2*$duration)" width="eval(input_width())" height="eval(input_height())" fps="eval(input_fps())"/>
+						<composite name="extend" start_duration="eval($pause+$duration)">
+							<input index="1"/>
+						</composite>
+					</composite>
+				</composite>
+			</then>
+			<else>
+				<composite name="transition" type="$type" duration="$duration">
+					<composite name="extend" end_duration="eval($pause+$duration)">
+						<input index="0"/>
+					</composite>
+					<composite name="extend" start_duration="eval($pause+$duration)">
+						<input index="1"/>
+					</composite>
+				</composite>
+			</else>
+		</if>
+	</function>
+
+	<function name="sidebyside-split">
+		<assert_inputs_match name="shape"/>
+		<assert_inputs_match name="fps"/>
+		<default name="border_width" value="4"/>
+		<default name="border_color" value="$_bgcolor_"/>
+		<default name="direction" value="vertical"/>
+		<default name="shortest" value="0"/>
+		<if name="equal">
+			<variable value="$direction"/>
+			<variable value="vertical"/>
+			<then>
+				<pipe>
+					<input index="0"/>
+					<composite name="overlay" x="w" shortest="$shortest">
+						<filter name="crop">
+							<variable name="x" value="iw/2"/>
+							<variable name="y" value="0"/>
+							<variable name="w" value="iw/2"/>
+							<variable name="h" value="ih"/>
+							<input index="1"/>
+						</filter>
+					</composite>
+					<filter name="drawbox">
+						<variable name="x" value="eval(width()/2-$border_width/2)"/>
+						<variable name="y" value="0"/>
+						<variable name="width" value="$border_width"/>
+						<variable name="height" value="eval(height())"/>
+						<variable name="thickness" value="fill"/>
+						<variable name="color" value="$border_color"/>
+					</filter>
+				</pipe>
+			</then>
+		</if>
+		<if name="equal">
+			<variable value="$direction"/>
+			<variable value="horizontal"/>
+			<then>
+				<pipe>
+					<input index="0"/>
+					<composite name="overlay" y="h" shortest="$shortest">
+						<filter name="crop">
+							<variable name="x" value="0"/>
+							<variable name="y" value="ih/2"/>
+							<variable name="w" value="iw"/>
+							<variable name="h" value="ih/2"/>
+							<input index="1"/>
+						</filter>
+					</composite>
+					<filter name="drawbox">
+						<variable name="x" value="0"/>
+						<variable name="y" value="eval(height()/2-$border_width/2)"/>
+						<variable name="width" value="eval(height())"/>
+						<variable name="height" value="$border_width"/>
+						<variable name="thickness" value="fill"/>
+						<variable name="color" value="$border_color"/>
+					</filter>
+				</pipe>
+			</then>
+		</if>
+	</function>
+
+	<function name="sidebyside-float">
+		<default name="margin" value="0.1"/>
+		<default name="head" value="0.1"/>
+		<default name="foot" value="0.25"/>
+		<default name="color" value="$_bgcolor_"/>
+		<default name="shortest" value="0"/>
+		<set name="width" value="eval(int(3*$margin*input_width()+sum(input_widths())))"/>
+		<set name="height" value="eval(int(input_width()*($head+$foot+1)))"/>
+		<pipe>
+			<composite name="color" color="$color" duration="eval(max(input_durations()))" width="$width" height="$height" fps="eval(input_fps())"/>
+			<composite name="overlay" x="eval(int($margin*input_width()))" y="eval($head*input_height())" shortest="$shortest">
+				<input index="0"/>
+			</composite>
+			<composite name="overlay" x="eval(input_width()*(1+2*$margin))" y="eval($head*input_height())" shortest="$shortest">
+				<input index="1"/>
+			</composite>
+		</pipe>
+	</function>
+
+	<function name="drawtext">
+		<default name="text" value="hello"/>
+		<default name="font" value=""/>
+		<default name="scale" value="1.0"/>
+		<default name="size" value="eval(input_width()*0.06*$scale)"/>
+		<default name="color" value="black"/>
+		<default name="x" value="(w-text_w)/2"/>
+		<default name="y" value="(h-text_h)/2"/>
+		<default name="shift_x" value="0"/>
+		<default name="shift_y" value="0"/>
+		<filter name="drawtext">
+			<variable name="text" value="'$text'"/>
+			<variable name="fontfile" value="$font"/>
+			<variable name="fontsize" value="$size"/>
+			<variable name="fontcolor" value="$color"/>
+			<variable name="x" value="$x+($shift_x)"/>
+			<variable name="y" value="$y+($shift_y)"/>
+			<input/>
+		</filter>
+	</function>
+
+	<function name="title-slide">
+		<default name="text" value="(Your text here)"/>
+		<default name="font" value=""/>
+		<default name="scale" value="1.0"/>
+		<default name="color" value="$_bgcolor_"/>
+		<default name="duration" value="1"/>
+		<default name="width" value="$_width_"/>
+		<default name="height" value="$_height_"/>
+		<default name="fps" value="$_fps_"/>
+		<pipe>
+			<composite name="color" color="$color" duration="$duration" width="$width" height="$height" fps="$fps"/>
+			<composite name="drawtext" text="$text" font="$font" scale="$scale" color="$_fgcolor_"/>
+		</pipe>
+	</function>
+
+	<function name="changespeed">
+		<default name="factor" value="0.5"/>
+		<composite name="fps" value="input_fps()">
+			<filter name="setpts" duration="eval(duration()/$factor)">
+				<variable value="PTS/$factor"/>
+				<filter name="minterpolate">
+					<variable name="fps" value="eval(fps()/$factor)"/>
+					<input/>
+				</filter>
+			</filter>
+		</composite>
+	</function>
+
+	<function name="negate">
+		<filter name="negate">
+			<input/>
+		</filter>
+	</function>
+
+</root>

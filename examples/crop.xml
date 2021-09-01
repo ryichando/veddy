@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+	<!-- import a video -->
+	<material name="cat" path="videos/cat.mp4"/>
+
+	<!-- define video scene -->
+	<stream transition="fade">
+		<composite name="title-slide" text="Original Footage"/>
+		<reference name="cat"/>
+		<composite name="title-slide" text="Cropped Footage"/>
+		<pipe>
+			<composite name="color" duration="5"/>
+			<composite name="overlay" x="0.25*main_w" y="0.25*main_h">
+				<composite name="crop" x="0.35*iw" y="0.35*ih" width="0.5*iw" height="0.5*ih">
+					<reference name="cat"/>
+				</composite>
+			</composite>
+			<composite name="drawtext" shift_y="0.35*h" text="Cropped" color="white" scale="0.85"/>
+		</pipe>
+	</stream>
+
+</root>

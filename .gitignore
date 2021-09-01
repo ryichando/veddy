@@ -1,0 +1,5 @@
+__pycache__
+examples/*.mp4
+docs/_*
+docs/Makefile
+

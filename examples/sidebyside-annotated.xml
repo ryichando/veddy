@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+	<!-- import materials -->
+	<material name="mesh" path="videos/water_mesh/image_%d.jpg" fps="30"/>
+	<material name="transparent" path="videos/water_transparent/image_%d.jpg" fps="30"/>
+
+	<!-- define video scene -->
+	<stream>
+		<pipe>
+			<composite name="sidebyside-split">
+				<reference name="mesh"/>
+				<reference name="transparent"/>
+			</composite>
+			<set name="bottom" value="0.9"/>
+			<composite name="drawtext" text="Mesh View" scale="0.5" shift_x="-w/4" y="$bottom*h"/>
+			<composite name="drawtext" text="Transparent View" scale="0.5" shift_x="w/4" y="$bottom*h"/>
+		</pipe>
+	</stream>
+
+</root>

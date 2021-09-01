@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+    <global name="hoge" value="4"/>
+
+    <stream>
+        <set name="foo" value="3"/>
+        <print name="hoge" value="$hoge"/>
+        <print name="foo" value="$foo"/>
+        <print name="output" value="eval($hoge * $foo)"/>
+    </stream>
+
+</root>

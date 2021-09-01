@@ -1,0 +1,17 @@
+<root version="0.0.1">
+	<global name="hoge" value="2"/>
+	<material name="cloud" path="videos/cloud.mp4"/>
+	<stream>
+		<set name="foo" value="2"/>
+		<pipe>
+			<reference name="cloud"/>
+			<print name="check point 1"/>
+			<composite name="trim" start="5" end="8"/>
+			<set name="bar" value="my_text"/>
+			<print name="check point 2"/>
+			<composite name="crop" x="0" end="0" width="80" height="50"/>
+			<print name="check point 3"/>
+		</pipe>
+		<exit/>
+	</stream>
+</root>

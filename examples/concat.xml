@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+	<!-- import materials -->
+	<material name="cat" path="videos/cat.mp4"/>
+	<material name="dog" path="videos/dog.mp4"/>
+
+	<!-- define video scene -->
+	<stream transition="fade">
+		<composite name="title-slide" text="Cat"/>
+		<reference name="cat"/>
+		<composite name="title-slide" text="Dog"/>
+		<reference name="dog"/>
+	</stream>
+
+</root>

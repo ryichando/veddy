@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+	<!-- import a video -->
+	<material name="cloud" path="videos/cloud.mp4"/>
+
+	<!-- define video scene -->
+	<stream transition="fade">
+		<composite name="title-slide" text="Original (10 seconds)"/>
+		<reference name="cloud"/>
+		<composite name="title-slide" text="Trimmed (3 seconds)"/>
+		<composite name="trim" start="5" end="8">
+			<reference name="cloud"/>
+		</composite>
+		<composite name="color" duration="1"/>
+	</stream>
+
+</root>

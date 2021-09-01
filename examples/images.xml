@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+	<!-- import materials -->
+	<material name="cover-1" path="images/cover-1.jpg" duration="1" fps="30"/>
+	<material name="cover-2" path="images/cover-2.jpg" duration="1" fps="30"/>
+	<material name="cover-3" path="images/cover-3.jpg" duration="1" fps="30"/>
+
+	<!-- define video scene -->
+	<stream transition="fade">
+		<composite name="title-slide" text="Nature"/>
+		<reference name="cover-1"/>
+		<reference name="cover-2"/>
+		<reference name="cover-3"/>
+		<composite name="title-slide" text="End"/>
+	</stream>
+
+</root>

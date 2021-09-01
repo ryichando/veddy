@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<root version="0.0.1">
+
+	<!-- import materials -->
+	<material name="implicit" path="videos/mpm/implicit/image_%d.jpg" fps="60"/>
+	<material name="explicit" path="videos/mpm/explicit/image_%d.jpg" fps="60"/>
+
+	<!-- define video scene -->
+	<stream>
+		<pipe>
+			<composite name="sidebyside-float">
+				<reference name="implicit"/> <!-- left -->
+				<reference name="explicit"/> <!-- right -->
+			</composite>
+			<set name="bottom" value="0.89"/>
+			<composite name="drawtext" text="Implicit Time Integration" scale="0.5" shift_x="-w/4" y="$bottom*h" color="white"/>
+			<composite name="drawtext" text="Explicit Time Integration" scale="0.5" shift_x="w/4" y="$bottom*h" color="white"/>
+		</pipe>
+	</stream>
+
+</root>
