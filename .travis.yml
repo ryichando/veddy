@@ -1,0 +1,15 @@
+language: python
+
+# blocklist
+branches:
+  except:
+  - dev
+
+services:
+  - docker
+
+before_install:
+  - docker build -t veddy .
+
+script:
+  - docker run -v ${TRAVIS_BUILD_DIR}:/veddy --rm veddy examples/*.xml
