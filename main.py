@@ -718,14 +718,14 @@ def generate( root, arguments, inputs, input_infos, inherit_outputs=[], inherit_
 class Material:
 	#
 	def __init__( self, root, dirpath ):
-		self.fps = int(root.attrib['fps']) if 'fps' in root.attrib else 60
+		self.fps = int(evaluate(root.attrib['fps'],g_arguments,generate_function_table())) if 'fps' in root.attrib else 60
 		self.shape = (0,0)
 		self.should_trim = False
 		self.duration = float('inf')
 		self.name = root.attrib['name']
 		self.path = None
 		if 'path' in root.attrib:
-			self.path = root.attrib['path']
+			self.path = evaluate(root.attrib['path'],g_arguments,generate_function_table())
 		elif 'url' in root.attrib:
 			url = root.attrib['url']
 			username = root.attrib['username'] if 'username' in root.attrib else ''
