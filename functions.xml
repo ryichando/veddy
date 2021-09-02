@@ -420,7 +420,7 @@
 		<default name="shift_y" value="0"/>
 		<filter name="drawtext">
 			<variable name="text" value="'$text'"/>
-			<variable name="fontfile" value="$font"/>
+			<variable name="fontfile" value="eval(convert_path('$font'))"/>
 			<variable name="fontsize" value="$size"/>
 			<variable name="fontcolor" value="$color"/>
 			<variable name="x" value="$x+($shift_x)"/>

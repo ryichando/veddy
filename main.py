@@ -15,6 +15,7 @@ g_audiotracks = {}
 g_configurations = {}
 g_label_counter = {}
 g_exports = {}
+g_current_xml_path = []
 g_all_tags = [
 	'filter','reference','composite','input', 'enable','filter_input',
 	'all_inputs','pipe','for_each','group','rolling','print',
@@ -254,6 +255,15 @@ def generate_function_table( input_infos=[], filtered_infos=[] ):
 	def get_material_name( index ):
 		return g_materials[index].name
 	#
+	def convert_path( relpath ):
+		if relpath:
+			if relpath.startswith('/'):
+				return os.path.join(os.path.dirname(g_current_xml_path[0]),relpath[1:])
+			else:
+				return os.path.join(os.path.dirname(g_current_xml_path[-1]),relpath)
+		else:
+			return relpath
+	#
 	return {
 		'count' : get_filtered_count,
 		'width' : get_filtered_width,
@@ -278,6 +288,7 @@ def generate_function_table( input_infos=[], filtered_infos=[] ):
 		'material_duration' : get_material_duration,
 		'material_fps' : get_material_fps,
 		'material_name' : get_material_name,
+		'convert_path' : convert_path,
 	}
 #
 # Generate ffmpeg filter command
@@ -987,6 +998,7 @@ def reset():
 def parse_xml( path ):
 	#
 	# Start parsing
+	g_current_xml_path.append(path)
 	root = ET.parse(path).getroot()
 	filename_base = os.path.basename(path).split('.')[0]
 	#
@@ -1092,12 +1104,16 @@ if __name__ == '__main__':
 		g_configurations.clear()
 		g_label_counter.clear()
 		g_exports.clear()
+		g_current_xml_path.clear()
 		#
-		parse_xml(str(pathlib.Path(__file__).parent)+'/'+'functions.xml')
 		if os.path.exists('/mount'):
-			parse_xml('/mount/'+xml_path)
+			root_parse_xml = '/mount/'+xml_path
 		else:
-			parse_xml(xml_path)
+			root_parse_xml = xml_path
+		#
+		g_current_xml_path.append(root_parse_xml)
+		parse_xml(str(pathlib.Path(__file__).parent)+'/'+'functions.xml')
+		parse_xml(root_parse_xml)
 		#
 		# Fill missing configs
 		default_configs = {
@@ -1228,6 +1244,8 @@ if __name__ == '__main__':
 				path = f'-listen 1 -f matroska http://0.0.0.0:{args.port}'
 			else:
 				path = info['path']
+				if not os.path.exists(os.path.dirname(path)):
+					os.makedirs(os.path.dirname(path))
 			#
 			# Build final ffmpeg command
 			ffmpeg_program = 'ffmpeg -v quiet -stats'
