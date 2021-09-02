@@ -1049,7 +1049,7 @@ def parse_xml( path ):
 		# Load exports
 		if elm.tag == 'export':
 			#
-			export_path = elm.attrib['path'] if 'path' in elm.attrib else elm.attrib['stream'] + '.mp4'
+			export_path = evaluate(elm.attrib['path'],g_arguments,generate_function_table()) if 'path' in elm.attrib else elm.attrib['stream'] + '.mp4'
 			if export_path:
 				if not export_path[0] == '/':
 					export_path = os.path.dirname(path) + '/' + export_path
