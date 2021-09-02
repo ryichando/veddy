@@ -1037,7 +1037,7 @@ def parse_xml( path ):
 		if elm.tag == 'config':
 			config_table = {
 				'fps' : 'r',
-				'bitrate' : 'b:v',
+				'crf' : 'crf',
 				'pixel_format' : 'pix_fmt',
 				'shape' : 's',
 			}
@@ -1125,7 +1125,7 @@ if __name__ == '__main__':
 		# Fill missing configs
 		default_configs = {
 			'pix_fmt' : 'yuv420p',
-			'b:v' : '12M',
+			'crf' : '18',
 		}
 		for key,value in default_configs.items():
 			if not key in g_configurations:
