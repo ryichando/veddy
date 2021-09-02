@@ -17,6 +17,7 @@ Define video tracks. See :ref:`Declaring Movie Track` for detail.
 
    name, Name of a stream, my_stream, Not required
    transition, Name of a transition from `this link <https://trac.ffmpeg.org/wiki/Xfade>`_, fade, Not required
+   extended, Use ``<transition>`` if set 0 ``<extended_transition>`` otherwise, 0, Not required
    duration, Transition duration, 1, Not required
 
 export
@@ -210,7 +211,7 @@ this is simply written as
 
 .. code-block:: xml
 
-    <stream transition="fade">
+    <stream transition="fade" extended="0">
         <reference name="ref1"/>
         <reference name="ref2"/>
         <reference name="ref3"/>

@@ -741,12 +741,10 @@ class Material:
 		self.is_image = False
 		self.is_video = False
 		if self.path:
-			for ext in utility.get_image_extensions():
-				if self.path.endswith(ext):
-					self.is_image = True
-			for ext in utility.get_video_extensions():
-				if self.path.endswith(ext):
-					self.is_video = True
+			if self.path.endswith(utility.get_image_extensions()):
+				self.is_image = True
+			if self.path.endswith(utility.get_video_extensions()):
+				self.is_video = True
 			if self.is_image:
 				self.shape = utility.get_image_resolution(pick_first_image(self.path))
 				count = utility.get_frame_count(self.path)
@@ -809,12 +807,10 @@ class Material:
 			if '%' in self.path:
 				return f'-r {self.fps} -i {self.path}'
 			else:
-				for ext in utility.get_image_extensions():
-					if self.path.endswith(ext):
-						return f'-loop 1 -i {self.path}'
-				for ext in utility.get_video_extensions():
-					if self.path.endswith(ext):
-						return f'-i {self.path}'
+				if self.path.endswith(utility.get_image_extensions()):
+					return f'-loop 1 -i {self.path}'
+				if self.path.endswith(utility.get_video_extensions()):
+					return f'-i {self.path}'
 		else:
 			return ''
 #
@@ -947,14 +943,17 @@ class Stream:
 			(cmd,filtered_outputs,filtered_infos) = generate(self.root,arguments,inputs,input_infos)
 			new_arguments = arguments.copy()
 			new_arguments['type'] = self.transition
+			extended = True
 			for tag in self.root.attrib:
 				if not tag == 'name' and not tag == 'transition':
 					new_arguments[tag] = self.root.attrib[tag]
+				if tag == 'extended':
+					extended = True if self.root.attrib[tag] == '1' else False
 			if filtered_outputs:
 				first_output = filtered_outputs[0]
 				first_info = filtered_infos[0]
 				for second_output,second_info in zip(filtered_outputs[1:],filtered_infos[1:]):
-					(_cmd,_outputs,_infos) = find_reference('extended_transition',['function']).generate(new_arguments,[first_output,second_output],[first_info,second_info])
+					(_cmd,_outputs,_infos) = find_reference('extended_transition' if extended else 'transition',['function']).generate(new_arguments,[first_output,second_output],[first_info,second_info])
 					cmd.extend(_cmd)
 					assert( len(_outputs) == 1 )
 					assert( len(_infos) == 1 )
@@ -1081,7 +1080,8 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('xml_path', nargs='*', help='XML file path')
 	parser.add_argument('--complex_filter', action='store_true', help='print complex_filter')
-	parser.add_argument('--preview', action='store_true')
+	parser.add_argument('--preview', action='store_true',help='Enter preview mode')
+	parser.add_argument('--timestamp', action='store_true',help='Show time stamp')
 	parser.add_argument('--stream', help='stream name to preview')
 	parser.add_argument('--starts_from', type=float, help='seconds to begin')
 	parser.add_argument('--duration', type=float, help='seconds duration')
@@ -1128,7 +1128,7 @@ if __name__ == '__main__':
 		rescale_via_vf = False
 		if not args.scale == 1.0:
 			if 's' in g_configurations:
-				(w,h) = [ int(x) for x in g_configurations['s'].split('x')]
+				(w,h) = tuple([ int(x) for x in g_configurations['s'].split('x')])
 				g_configurations['s'] = f'{int(args.scale*w)}x{int(args.scale*h)}'
 			else:
 				rescale_via_vf = True
@@ -1228,7 +1228,7 @@ if __name__ == '__main__':
 				outputs = [f'{label}']
 			#
 			# Overlay time stamp
-			if args.preview or info['timestamp']:
+			if args.preview or args.timestamp or info['timestamp']:
 				label = generate_label('timestamp')
 				timestamp_format = 'timestamp: %{pts\:hms}'
 				timestamp_cmd = f"[{outputs[0]}]drawtext=text='{timestamp_format}':fontcolor=white:shadowcolor=black:shadowx=2:shadowy=2[{label}]"
@@ -1248,7 +1248,7 @@ if __name__ == '__main__':
 					os.makedirs(os.path.dirname(path))
 			#
 			# Build final ffmpeg command
-			ffmpeg_program = 'ffmpeg -v quiet -stats'
+			ffmpeg_program = 'ffmpeg -stats'
 			#
 			filter_complex_command = [f'-filter_complex "{";".join(commands)}"'] if commands else []
 			map_command = [f'-map [{outputs[0]}]'] if commands else []

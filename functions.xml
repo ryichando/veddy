@@ -446,11 +446,13 @@
 
 	<function name="changespeed">
 		<default name="factor" value="0.5"/>
+		<default name="mode" value="dup"/>
 		<composite name="fps" value="input_fps()">
 			<filter name="setpts" duration="eval(duration()/$factor)">
 				<variable value="PTS/$factor"/>
 				<filter name="minterpolate">
 					<variable name="fps" value="eval(fps()/$factor)"/>
+					<variable name="mi_mode" value="$mode"/>
 					<input/>
 				</filter>
 			</filter>

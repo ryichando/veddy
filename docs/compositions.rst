@@ -620,14 +620,15 @@ Change the video speed.
    :header: Attribute, Description, Default
 
    factor, Speed factor, 0.5
+   mode, Interpolation mode, dup
 
 .. csv-table::
    :header: Number of inputs, Number of outputs, Used FFmpeg filters
 
-   1, 1, many
+   1, 1, `minterpolate <https://ffmpeg.org/ffmpeg-filters.html#minterpolate>`_
 
 .. code-block:: xml
-   
+
    <material name="video" path="video.mp4"/>
    <stream>
       <composite name="changespeed">
@@ -636,6 +637,7 @@ Change the video speed.
    </stream>
 
 .. <default name="factor" value="0.5"/>
+.. <default name="mode" value="dup"/>
 
 negate
 ======================
