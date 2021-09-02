@@ -398,6 +398,22 @@ Print a variable or expression. See :ref:`Debugging` for detail.
    name, Label name, checkpoint 1, No
    value, What to print, eval($var+1), No
 
+assert
+=======
+
+Assert check an expression.
+
+.. csv-table::
+   :header: |AllowedLoc|, |CanHaveNested|, |CanBeInPipe|
+
+   In ``<stream>`` and in its nested, Yes, Yes
+
+.. csv-table::
+   :header: Attribute, Description, Example, Required
+
+   name, Label name, checkpoint 1, Yes
+   value, What to verify, eval($var+1 > 10), Yes
+
 exit
 ====
 

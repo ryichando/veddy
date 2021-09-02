@@ -334,6 +334,7 @@
 		<default name="border_width" value="4"/>
 		<default name="border_color" value="$_bgcolor_"/>
 		<default name="direction" value="vertical"/>
+		<default name="position" value="0.5"/>
 		<default name="shortest" value="0"/>
 		<if name="equal">
 			<variable value="$direction"/>
@@ -341,17 +342,17 @@
 			<then>
 				<pipe>
 					<input index="0"/>
-					<composite name="overlay" x="w" shortest="$shortest">
+					<composite name="overlay" x="eval($position * width())" shortest="$shortest">
 						<filter name="crop">
-							<variable name="x" value="iw/2"/>
+							<variable name="x" value="$position * iw"/>
 							<variable name="y" value="0"/>
-							<variable name="w" value="iw/2"/>
+							<variable name="w" value="(1-$position) * iw"/>
 							<variable name="h" value="ih"/>
 							<input index="1"/>
 						</filter>
 					</composite>
 					<filter name="drawbox">
-						<variable name="x" value="eval(width()/2-$border_width/2)"/>
+						<variable name="x" value="eval($position * (width()-$border_width))"/>
 						<variable name="y" value="0"/>
 						<variable name="width" value="$border_width"/>
 						<variable name="height" value="eval(height())"/>
@@ -367,18 +368,18 @@
 			<then>
 				<pipe>
 					<input index="0"/>
-					<composite name="overlay" y="h" shortest="$shortest">
+					<composite name="overlay" y="eval($position * height())" shortest="$shortest">
 						<filter name="crop">
 							<variable name="x" value="0"/>
-							<variable name="y" value="ih/2"/>
+							<variable name="y" value="$position * ih"/>
 							<variable name="w" value="iw"/>
-							<variable name="h" value="ih/2"/>
+							<variable name="h" value="(1-$position) * ih"/>
 							<input index="1"/>
 						</filter>
 					</composite>
 					<filter name="drawbox">
 						<variable name="x" value="0"/>
-						<variable name="y" value="eval(height()/2-$border_width/2)"/>
+						<variable name="y" value="eval($position * (height()-$border_width))"/>
 						<variable name="width" value="eval(height())"/>
 						<variable name="height" value="$border_width"/>
 						<variable name="thickness" value="fill"/>

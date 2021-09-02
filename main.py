@@ -1087,6 +1087,7 @@ if __name__ == '__main__':
 	parser.add_argument('--duration', type=float, help='seconds duration')
 	parser.add_argument('--port', type=int, default=8020, help='preview http port' )
 	parser.add_argument('--scale', type=float, default="1.0", help='output scaling factor')
+	parser.add_argument('--set', nargs='+', help="set global variables")
 	args = parser.parse_args()
 	#
 	if not args.xml_path:
@@ -1110,6 +1111,12 @@ if __name__ == '__main__':
 			root_parse_xml = '/mount/'+xml_path
 		else:
 			root_parse_xml = xml_path
+		#
+		if args.set:
+			for x in args.set:
+				key,value = x.split('=')
+				print( f'set global {key} = {value}')
+				g_arguments[key] = value
 		#
 		g_current_xml_path.append(root_parse_xml)
 		parse_xml(str(pathlib.Path(__file__).parent)+'/'+'functions.xml')

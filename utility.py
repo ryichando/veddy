@@ -5,7 +5,7 @@ from PIL import Image
 #
 # Video and image extensions
 def get_video_extensions():
-	return ( '.mp4', '.mov', '.mpeg', '.avi' )
+	return ( '.mp4', '.m4v', '.mov', '.mpeg', '.avi' )
 #
 def get_image_extensions():
 	return ( '.png', '.jpg', '.jpeg', '.bmp', '.tiff' )
