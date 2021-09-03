@@ -5,7 +5,7 @@ from PIL import Image
 #
 # Video and image extensions
 def get_video_extensions():
-	return ( '.mp4', '.mov', '.mpeg', '.avi' )
+	return ( '.mp4', '.m4v', '.mov', '.mpeg', '.avi' )
 #
 def get_image_extensions():
 	return ( '.png', '.jpg', '.jpeg', '.bmp', '.tiff' )
@@ -58,12 +58,10 @@ def get_image_count( path ):
 	return count
 #
 def get_frame_count( path ):
-	for ext in get_video_extensions():
-		if path.endswith(ext):
-			return get_video_frame_count(path)
-	for ext in get_image_extensions():
-		if path.endswith(ext):
-			return get_image_count(path)
+	if path.endswith(get_image_extensions()):
+		return get_video_frame_count(path)
+	if path.endswith(get_image_extensions()):
+		return get_image_count(path)
 	print( f'Unknown type {path}' )
 	os.exit(-1)
 

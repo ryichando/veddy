@@ -3,3 +3,4 @@ examples/*.mp4
 docs/_*
 docs/Makefile
 
+/*.mp4

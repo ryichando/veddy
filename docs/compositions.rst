@@ -238,6 +238,8 @@ Re-scale video size.
    :header: Attribute, Description, Default
 
    scale, Scale ratio, 0.5
+   width, New width, $scale*iw
+   height, New height, $scale*ih
 
 .. csv-table::
    :header: Number of inputs, Number of outputs, Used FFmpeg filters
@@ -484,6 +486,7 @@ Lay a split side-by-side comparison.
    border_width, Border width at the center, 4
    border_color, Border color, $\ :ref:`_bgcolor_`
    direction, Vertical or horizontal, vertical
+   position, Fractional split postion, 0.5
    shortest, Terminate the whole video if any terminates, 0
 
 .. csv-table::
@@ -620,14 +623,15 @@ Change the video speed.
    :header: Attribute, Description, Default
 
    factor, Speed factor, 0.5
+   mode, Interpolation mode, dup
 
 .. csv-table::
    :header: Number of inputs, Number of outputs, Used FFmpeg filters
 
-   1, 1, many
+   1, 1, `minterpolate <https://ffmpeg.org/ffmpeg-filters.html#minterpolate>`_
 
 .. code-block:: xml
-   
+
    <material name="video" path="video.mp4"/>
    <stream>
       <composite name="changespeed">
@@ -636,6 +640,7 @@ Change the video speed.
    </stream>
 
 .. <default name="factor" value="0.5"/>
+.. <default name="mode" value="dup"/>
 
 negate
 ======================

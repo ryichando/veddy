@@ -17,6 +17,7 @@ Define video tracks. See :ref:`Declaring Movie Track` for detail.
 
    name, Name of a stream, my_stream, Not required
    transition, Name of a transition from `this link <https://trac.ffmpeg.org/wiki/Xfade>`_, fade, Not required
+   extended, Use ``<transition>`` if set 0 ``<extended_transition>`` otherwise, 0, Not required
    duration, Transition duration, 1, Not required
 
 export
@@ -210,7 +211,7 @@ this is simply written as
 
 .. code-block:: xml
 
-    <stream transition="fade">
+    <stream transition="fade" extended="0">
         <reference name="ref1"/>
         <reference name="ref2"/>
         <reference name="ref3"/>
@@ -339,7 +340,8 @@ Currently, following name/value pairs are valid
     shape, Video size, N/A,1280x720
     fps, Video FPS, N/A, 24
     pixel_format, Pixel format, yuv420p, yuv420p
-    bitrate, Video bitrate, 12M, 400k
+    bitrate, Video bitrate, N/A, 400k
+    crf, Constant Rate Factor (CRF), N/A, 18
 
 ffmpeg_config
 =============
@@ -396,6 +398,22 @@ Print a variable or expression. See :ref:`Debugging` for detail.
 
    name, Label name, checkpoint 1, No
    value, What to print, eval($var+1), No
+
+assert
+=======
+
+Assert check an expression.
+
+.. csv-table::
+   :header: |AllowedLoc|, |CanHaveNested|, |CanBeInPipe|
+
+   In ``<stream>`` and in its nested, Yes, Yes
+
+.. csv-table::
+   :header: Attribute, Description, Example, Required
+
+   name, Label name, checkpoint 1, Yes
+   value, What to verify, eval($var+1 > 10), Yes
 
 exit
 ====

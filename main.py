@@ -15,6 +15,7 @@ g_audiotracks = {}
 g_configurations = {}
 g_label_counter = {}
 g_exports = {}
+g_current_xml_path = []
 g_all_tags = [
 	'filter','reference','composite','input', 'enable','filter_input',
 	'all_inputs','pipe','for_each','group','rolling','print',
@@ -254,6 +255,15 @@ def generate_function_table( input_infos=[], filtered_infos=[] ):
 	def get_material_name( index ):
 		return g_materials[index].name
 	#
+	def convert_path( relpath ):
+		converted_path = relpath
+		if relpath:
+			if relpath.startswith('/'):
+				converted_path = os.path.join(os.path.dirname(g_current_xml_path[0]),relpath[1:])
+			else:
+				converted_path = os.path.join(os.path.dirname(g_current_xml_path[-1]),relpath)
+		return converted_path
+	#
 	return {
 		'count' : get_filtered_count,
 		'width' : get_filtered_width,
@@ -278,6 +288,7 @@ def generate_function_table( input_infos=[], filtered_infos=[] ):
 		'material_duration' : get_material_duration,
 		'material_fps' : get_material_fps,
 		'material_name' : get_material_name,
+		'convert_path' : convert_path,
 	}
 #
 # Generate ffmpeg filter command
@@ -707,14 +718,14 @@ def generate( root, arguments, inputs, input_infos, inherit_outputs=[], inherit_
 class Material:
 	#
 	def __init__( self, root, dirpath ):
-		self.fps = int(root.attrib['fps']) if 'fps' in root.attrib else 60
+		self.fps = int(evaluate(root.attrib['fps'],g_arguments,generate_function_table())) if 'fps' in root.attrib else 60
 		self.shape = (0,0)
 		self.should_trim = False
 		self.duration = float('inf')
 		self.name = root.attrib['name']
 		self.path = None
 		if 'path' in root.attrib:
-			self.path = root.attrib['path']
+			self.path = evaluate(root.attrib['path'],g_arguments,generate_function_table())
 		elif 'url' in root.attrib:
 			url = root.attrib['url']
 			username = root.attrib['username'] if 'username' in root.attrib else ''
@@ -730,12 +741,10 @@ class Material:
 		self.is_image = False
 		self.is_video = False
 		if self.path:
-			for ext in utility.get_image_extensions():
-				if self.path.endswith(ext):
-					self.is_image = True
-			for ext in utility.get_video_extensions():
-				if self.path.endswith(ext):
-					self.is_video = True
+			if self.path.endswith(utility.get_image_extensions()):
+				self.is_image = True
+			if self.path.endswith(utility.get_video_extensions()):
+				self.is_video = True
 			if self.is_image:
 				self.shape = utility.get_image_resolution(pick_first_image(self.path))
 				count = utility.get_frame_count(self.path)
@@ -798,12 +807,10 @@ class Material:
 			if '%' in self.path:
 				return f'-r {self.fps} -i {self.path}'
 			else:
-				for ext in utility.get_image_extensions():
-					if self.path.endswith(ext):
-						return f'-loop 1 -i {self.path}'
-				for ext in utility.get_video_extensions():
-					if self.path.endswith(ext):
-						return f'-i {self.path}'
+				if self.path.endswith(utility.get_image_extensions()):
+					return f'-loop 1 -i {self.path}'
+				if self.path.endswith(utility.get_video_extensions()):
+					return f'-i {self.path}'
 		else:
 			return ''
 #
@@ -936,14 +943,17 @@ class Stream:
 			(cmd,filtered_outputs,filtered_infos) = generate(self.root,arguments,inputs,input_infos)
 			new_arguments = arguments.copy()
 			new_arguments['type'] = self.transition
+			extended = True
 			for tag in self.root.attrib:
 				if not tag == 'name' and not tag == 'transition':
 					new_arguments[tag] = self.root.attrib[tag]
+				if tag == 'extended':
+					extended = True if self.root.attrib[tag] == '1' else False
 			if filtered_outputs:
 				first_output = filtered_outputs[0]
 				first_info = filtered_infos[0]
 				for second_output,second_info in zip(filtered_outputs[1:],filtered_infos[1:]):
-					(_cmd,_outputs,_infos) = find_reference('extended_transition',['function']).generate(new_arguments,[first_output,second_output],[first_info,second_info])
+					(_cmd,_outputs,_infos) = find_reference('extended_transition' if extended else 'transition',['function']).generate(new_arguments,[first_output,second_output],[first_info,second_info])
 					cmd.extend(_cmd)
 					assert( len(_outputs) == 1 )
 					assert( len(_infos) == 1 )
@@ -987,6 +997,7 @@ def reset():
 def parse_xml( path ):
 	#
 	# Start parsing
+	g_current_xml_path.append(os.path.dirname(path))
 	root = ET.parse(path).getroot()
 	filename_base = os.path.basename(path).split('.')[0]
 	#
@@ -1026,6 +1037,7 @@ def parse_xml( path ):
 		if elm.tag == 'config':
 			config_table = {
 				'fps' : 'r',
+				'crf' : 'crf',
 				'bitrate' : 'b:v',
 				'pixel_format' : 'pix_fmt',
 				'shape' : 's',
@@ -1038,7 +1050,7 @@ def parse_xml( path ):
 		# Load exports
 		if elm.tag == 'export':
 			#
-			export_path = elm.attrib['path'] if 'path' in elm.attrib else elm.attrib['stream'] + '.mp4'
+			export_path = evaluate(elm.attrib['path'],g_arguments,generate_function_table()) if 'path' in elm.attrib else elm.attrib['stream'] + '.mp4'
 			if export_path:
 				if not export_path[0] == '/':
 					export_path = os.path.dirname(path) + '/' + export_path
@@ -1055,6 +1067,8 @@ def parse_xml( path ):
 				'audiotrack' : audiotrack,
 				'timestamp' : timestamp,
 			}
+	#
+	g_current_xml_path.pop()
 #
 def signal_handler(*args):
 	print( 'Sinal detected. Aborting...' )
@@ -1069,12 +1083,14 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('xml_path', nargs='*', help='XML file path')
 	parser.add_argument('--complex_filter', action='store_true', help='print complex_filter')
-	parser.add_argument('--preview', action='store_true')
+	parser.add_argument('--preview', action='store_true',help='Enter preview mode')
+	parser.add_argument('--timestamp', action='store_true',help='Show time stamp')
 	parser.add_argument('--stream', help='stream name to preview')
 	parser.add_argument('--starts_from', type=float, help='seconds to begin')
 	parser.add_argument('--duration', type=float, help='seconds duration')
 	parser.add_argument('--port', type=int, default=8020, help='preview http port' )
 	parser.add_argument('--scale', type=float, default="1.0", help='output scaling factor')
+	parser.add_argument('--set', nargs='+', help="set global variables")
 	args = parser.parse_args()
 	#
 	if not args.xml_path:
@@ -1092,17 +1108,27 @@ if __name__ == '__main__':
 		g_configurations.clear()
 		g_label_counter.clear()
 		g_exports.clear()
+		g_current_xml_path.clear()
+		#
+		if os.path.exists('/mount'):
+			root_parse_xml = '/mount/'+xml_path
+		else:
+			root_parse_xml = xml_path
+		g_current_xml_path.append(root_parse_xml)
+		#
+		if args.set:
+			for x in args.set:
+				key,value = x.split('=')
+				print( f'set global {key} = {value}')
+				g_arguments[key] = value
 		#
 		parse_xml(str(pathlib.Path(__file__).parent)+'/'+'functions.xml')
-		if os.path.exists('/mount'):
-			parse_xml('/mount/'+xml_path)
-		else:
-			parse_xml(xml_path)
+		parse_xml(root_parse_xml)
 		#
 		# Fill missing configs
 		default_configs = {
 			'pix_fmt' : 'yuv420p',
-			'b:v' : '12M',
+			'crf' : '18',
 		}
 		for key,value in default_configs.items():
 			if not key in g_configurations:
@@ -1112,7 +1138,7 @@ if __name__ == '__main__':
 		rescale_via_vf = False
 		if not args.scale == 1.0:
 			if 's' in g_configurations:
-				(w,h) = [ int(x) for x in g_configurations['s'].split('x')]
+				(w,h) = tuple([ int(x) for x in g_configurations['s'].split('x')])
 				g_configurations['s'] = f'{int(args.scale*w)}x{int(args.scale*h)}'
 			else:
 				rescale_via_vf = True
@@ -1212,7 +1238,7 @@ if __name__ == '__main__':
 				outputs = [f'{label}']
 			#
 			# Overlay time stamp
-			if args.preview or info['timestamp']:
+			if args.preview or args.timestamp or info['timestamp']:
 				label = generate_label('timestamp')
 				timestamp_format = 'timestamp: %{pts\:hms}'
 				timestamp_cmd = f"[{outputs[0]}]drawtext=text='{timestamp_format}':fontcolor=white:shadowcolor=black:shadowx=2:shadowy=2[{label}]"
@@ -1228,9 +1254,12 @@ if __name__ == '__main__':
 				path = f'-listen 1 -f matroska http://0.0.0.0:{args.port}'
 			else:
 				path = info['path']
+				dir = os.path.dirname(path)
+				if dir and not os.path.exists(dir):
+					os.makedirs(dir)
 			#
 			# Build final ffmpeg command
-			ffmpeg_program = 'ffmpeg -v quiet -stats'
+			ffmpeg_program = 'ffmpeg -stats'
 			#
 			filter_complex_command = [f'-filter_complex "{";".join(commands)}"'] if commands else []
 			map_command = [f'-map [{outputs[0]}]'] if commands else []
@@ -1255,3 +1284,5 @@ if __name__ == '__main__':
 					print( f'ffplay -loglevel error -autoexit http://127.0.0.1:{args.port}' )
 				#
 				subprocess.call(ffmpeg_command,shell=True)
+		#
+		g_current_xml_path.pop()
