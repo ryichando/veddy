@@ -750,7 +750,7 @@ class Material:
 				count = utility.get_frame_count(self.path)
 				if count == 1:
 					if 'duration' in root.attrib:
-						self.duration = float(root.attrib['duration'])
+						self.duration = float(evaluate(root.attrib['duration'],g_arguments,generate_function_table()))
 						self.should_trim = True
 					else:
 						self.duration = float('inf')
