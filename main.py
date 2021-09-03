@@ -1038,6 +1038,7 @@ def parse_xml( path ):
 			config_table = {
 				'fps' : 'r',
 				'crf' : 'crf',
+				'bitrate' : 'b:v',
 				'pixel_format' : 'pix_fmt',
 				'shape' : 's',
 			}
@@ -1066,6 +1067,8 @@ def parse_xml( path ):
 				'audiotrack' : audiotrack,
 				'timestamp' : timestamp,
 			}
+	#
+	g_current_xml_path.pop()
 #
 def signal_handler(*args):
 	print( 'Sinal detected. Aborting...' )
@@ -1111,6 +1114,7 @@ if __name__ == '__main__':
 			root_parse_xml = '/mount/'+xml_path
 		else:
 			root_parse_xml = xml_path
+		g_current_xml_path.append(xml_path)
 		#
 		if args.set:
 			for x in args.set:
@@ -1118,7 +1122,6 @@ if __name__ == '__main__':
 				print( f'set global {key} = {value}')
 				g_arguments[key] = value
 		#
-		g_current_xml_path.append(root_parse_xml)
 		parse_xml(str(pathlib.Path(__file__).parent)+'/'+'functions.xml')
 		parse_xml(root_parse_xml)
 		#
@@ -1251,8 +1254,9 @@ if __name__ == '__main__':
 				path = f'-listen 1 -f matroska http://0.0.0.0:{args.port}'
 			else:
 				path = info['path']
-				if not os.path.exists(os.path.dirname(path)):
-					os.makedirs(os.path.dirname(path))
+				dir = os.path.dirname(path)
+				if dir and not os.path.exists(dir):
+					os.makedirs(dir)
 			#
 			# Build final ffmpeg command
 			ffmpeg_program = 'ffmpeg -stats'
@@ -1280,3 +1284,5 @@ if __name__ == '__main__':
 					print( f'ffplay -loglevel error -autoexit http://127.0.0.1:{args.port}' )
 				#
 				subprocess.call(ffmpeg_command,shell=True)
+		#
+		g_current_xml_path.pop()

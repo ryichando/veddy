@@ -340,7 +340,8 @@ Currently, following name/value pairs are valid
     shape, Video size, N/A,1280x720
     fps, Video FPS, N/A, 24
     pixel_format, Pixel format, yuv420p, yuv420p
-    bitrate, Video bitrate, 12M, 400k
+    bitrate, Video bitrate, N/A, 400k
+    crf, Constant Rate Factor (CRF), N/A, 18
 
 ffmpeg_config
 =============

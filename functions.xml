@@ -215,6 +215,7 @@
 			<variable name="x" value="$x"/>
 			<variable name="y" value="$y"/>
 			<variable name="shortest" value="$shortest"/>
+			<variable name="format" value="auto"/>
 			<set name="d0" value="eval(input_duration(0))"/>
 			<set name="d1" value="eval(input_duration(1))"/>
 			<filter_input index="1">
@@ -236,9 +237,7 @@
 						</composite>
 					</case>
 					<otherwise>
-						<composite name="format">
-							<input/>
-						</composite>
+						<input/>
 					</otherwise>
 				</if>
 			</filter_input>
