@@ -256,13 +256,13 @@ def generate_function_table( input_infos=[], filtered_infos=[] ):
 		return g_materials[index].name
 	#
 	def convert_path( relpath ):
+		converted_path = relpath
 		if relpath:
 			if relpath.startswith('/'):
-				return os.path.join(os.path.dirname(g_current_xml_path[0]),relpath[1:])
+				converted_path = os.path.join(os.path.dirname(g_current_xml_path[0]),relpath[1:])
 			else:
-				return os.path.join(os.path.dirname(g_current_xml_path[-1]),relpath)
-		else:
-			return relpath
+				converted_path = os.path.join(os.path.dirname(g_current_xml_path[-1]),relpath)
+		return converted_path
 	#
 	return {
 		'count' : get_filtered_count,
@@ -997,7 +997,7 @@ def reset():
 def parse_xml( path ):
 	#
 	# Start parsing
-	g_current_xml_path.append(path)
+	g_current_xml_path.append(os.path.dirname(path))
 	root = ET.parse(path).getroot()
 	filename_base = os.path.basename(path).split('.')[0]
 	#
@@ -1114,7 +1114,7 @@ if __name__ == '__main__':
 			root_parse_xml = '/mount/'+xml_path
 		else:
 			root_parse_xml = xml_path
-		g_current_xml_path.append(xml_path)
+		g_current_xml_path.append(root_parse_xml)
 		#
 		if args.set:
 			for x in args.set:
