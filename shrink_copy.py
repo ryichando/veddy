@@ -2,12 +2,16 @@
 # Author: Ryoichi Ando (https://ryichando.graphics)
 # License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
-import os, sys, argparse, shutil
+import os, sys, argparse, shutil, utility
 from PIL import Image
+#
+def create_dir(dir):
+	if not os.path.exists(dir):
+		print( f'create dir "{dir}"')
+		os.makedirs(dir)
 #
 if __name__ == '__main__':
 	#
-	image_exts = ( '.png', '.jpg', '.jpeg', '.bmp', '.tiff' )
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--source',help='source directory path')
 	parser.add_argument('--target',help='target directory path')
@@ -28,16 +32,18 @@ if __name__ == '__main__':
 	for root, dirs, files in os.walk(args.source, topdown=False):
 		relpath = os.path.relpath(root,args.source)
 		for file in files:
-			if file.lower().endswith(image_exts):
-				path_from = os.path.join(root,file)
-				path_target = os.path.join(args.target,relpath,file)
+			path_from = os.path.join(root,file)
+			path_target = os.path.join(args.target,relpath,file)
+			if file.lower().endswith(utility.get_image_extensions()):
 				dir = os.path.dirname(path_target)
-				if not os.path.exists(dir):
-					print( f'create dir "{dir}"')
-					os.makedirs(dir)
+				create_dir(dir)
 				with Image.open(path_from) as image:
 					o_width,o_height = image.size
 					n_width = int(args.scale * o_width)
 					n_height = int(args.scale * o_height)
 					print( f'resize "{path_from} ({o_width}x{o_height})" ==> "{path_target}" ({n_width}x{n_height})')
 					image.resize((n_width,n_height),Image.LANCZOS).save(path_target)
+			if file.lower().endswith(utility.get_video_extensions()):
+				dir = os.path.dirname(path_target)
+				create_dir(dir)
+				shutil.copy(path_from,path_target)
