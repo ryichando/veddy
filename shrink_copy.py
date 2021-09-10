@@ -25,16 +25,16 @@ if __name__ == '__main__':
 				sys.exit()
 	#
 	os.mkdir(args.target)
-	for root, dirs, files in os.walk(args.source, topdown=True):
+	for root, dirs, files in os.walk(args.source, topdown=False):
 		relpath = os.path.relpath(root,args.source)
-		for dir in dirs:
-			path = os.path.join(args.target,relpath,dir)
-			print( f'create dir "{path}"')
-			os.mkdir(path)
 		for file in files:
 			if file.lower().endswith(image_exts):
 				path_from = os.path.join(root,file)
 				path_target = os.path.join(args.target,relpath,file)
+				dir = os.path.dirname(path_target)
+				if not os.path.exists(dir):
+					print( f'create dir "{dir}"')
+					os.makedirs(dir)
 				with Image.open(path_from) as image:
 					o_width,o_height = image.size
 					n_width = int(args.scale * o_width)
