@@ -10,12 +10,21 @@ def create_dir(dir):
 		print( f'create dir "{dir}"')
 		os.makedirs(dir)
 #
+def check_skip(path,names):
+	if names:
+		for name in names:
+			if name in root:
+				print( f'skipping "{path}"' )
+				return True
+	return False
+#
 if __name__ == '__main__':
 	#
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--source',help='source directory path')
 	parser.add_argument('--target',help='target directory path')
 	parser.add_argument('--scale',default=0.25,type=float,help='scaling factor')
+	parser.add_argument('--exclude',nargs='*',help="Ignore list")
 	args = parser.parse_args()
 	#
 	assert( os.path.isdir(args.source) )
@@ -30,8 +39,12 @@ if __name__ == '__main__':
 	#
 	os.mkdir(args.target)
 	for root, dirs, files in os.walk(args.source, topdown=False):
+		if check_skip(root,args.exclude):
+			continue
 		relpath = os.path.relpath(root,args.source)
 		for file in files:
+			if check_skip(file,args.exclude):
+				continue
 			path_from = os.path.join(root,file)
 			path_target = os.path.join(args.target,relpath,file)
 			if file.lower().endswith(utility.get_image_extensions()):
