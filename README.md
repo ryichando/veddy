@@ -1,5 +1,4 @@
 # Veddy
-[![Build Status](https://app.travis-ci.com/ryichando/veddy.svg?branch=master)](https://app.travis-ci.com/ryichando/veddy)
 [![Documentation Status](https://readthedocs.org/projects/veddy/badge/?version=latest)](https://veddy.readthedocs.io/en/latest/?badge=latest)
 
 An XML-based video editor targeted at technical presentation. No UI, seriously. Powered by [FFmpeg](https://www.ffmpeg.org).
